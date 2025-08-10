@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+
 import {
   StyleSheet,
   Text,
@@ -16,6 +17,7 @@ import Svg, {
   Circle,
   Rect,
 } from 'react-native-svg';
+
 import { project, YearRow } from './project';
 
 export default function App() {
@@ -77,6 +79,7 @@ export default function App() {
       />
       <Button title="Project" onPress={handleCalculate} />
       {rows.length > 0 && (
+
         <>
           <Chart rows={rows} />
           <View style={styles.table}>
@@ -100,23 +103,28 @@ export default function App() {
             ))}
           </View>
         </>
+
       )}
     </ScrollView>
   );
 }
 
+
 const Chart = ({ rows }: { rows: YearRow[] }) => {
   if (rows.length === 0) return null;
   const width = 300;
   const height = 200;
+
   const padding = 40;
   const maxY = Math.max(
     ...rows.map((r) => Math.max(r.endBalance, r.contribution))
   );
   const maxYear = rows[rows.length - 1].year;
 
+
   const [hover, setHover] = useState<YearRow | null>(null);
   const [hoverX, setHoverX] = useState<number | null>(null);
+
 
   const xScale = (year: number) =>
     padding + (year / Math.max(maxYear, 1)) * (width - padding * 2);
@@ -149,6 +157,7 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
   const endPoints = pointsFor((r) => r.endBalance);
   const contrPoints = pointsFor((r) => r.contribution);
 
+
   const handleTouch = (evt: GestureResponderEvent) => {
     const x = evt.nativeEvent.locationX;
     const year = Math.round(
@@ -179,6 +188,7 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
         setHoverX(null);
       }}
     >
+
       {/* axes */}
       <Line
         x1={padding}
@@ -273,6 +283,7 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
       </G>
 
       {/* data lines */}
+
       <Polyline
         points={endPoints}
         stroke="blue"
@@ -285,6 +296,7 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
         strokeWidth="2"
         fill="none"
       />
+
       {hover && hoverX !== null && (
         <G>
           <Line
@@ -325,6 +337,7 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
           </SvgText>
         </G>
       )}
+
     </Svg>
   );
 };
@@ -351,10 +364,12 @@ const styles = StyleSheet.create({
   table: {
     marginTop: 20,
   },
+
   chart: {
     marginTop: 20,
     alignSelf: 'center',
   },
+
   row: {
     flexDirection: 'row',
   },
