@@ -22,7 +22,7 @@ import { project, YearRow } from './project';
 import DataTableCard from "./components/DataTableCard";
 
 export default function App() {
-  const [tableCollapsed, setTableCollapsed] = useState(false);
+  const [tableCollapsed, setTableCollapsed] = useState(true);
   const [plotColumns, setPlotColumns] = useState({
     endBalance: true,
     contribution: true,
@@ -36,11 +36,11 @@ export default function App() {
   };
   const [initialAmount, setInitialAmount] = useState('10000');
   const [annualReturnRate, setAnnualReturnRate] = useState('7');
-  const [annualContribution, setAnnualContribution] = useState('0');
-  const [withdrawStartYear, setWithdrawStartYear] = useState('0');
+  const [annualContribution, setAnnualContribution] = useState('10000');
+  const [withdrawStartYear, setWithdrawStartYear] = useState('30');
   const [withdrawType, setWithdrawType] = useState<'percent' | 'amount'>('percent');
   const [withdrawPercent, setWithdrawPercent] = useState('4');
-  const [withdrawAmount, setWithdrawAmount] = useState('');
+  const [withdrawAmount, setWithdrawAmount] = useState('10000');
   const [rows, setRows] = useState<YearRow[]>([]);
 
   React.useEffect(() => {
