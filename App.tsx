@@ -1,9 +1,22 @@
 import React, { useState } from 'react';
-import { StyleSheet, Text, View, TextInput, Button, ScrollView } from 'react-native';
 
-import Svg, { Polyline, Line, Text as SvgText, G } from 'react-native-svg';
-
-
+import {
+  StyleSheet,
+  Text,
+  View,
+  TextInput,
+  Button,
+  ScrollView,
+  GestureResponderEvent,
+} from 'react-native';
+import Svg, {
+  Polyline,
+  Line,
+  Text as SvgText,
+  G,
+  Circle,
+  Rect,
+} from 'react-native-svg';
 
 import { project, YearRow } from './project';
 
@@ -108,6 +121,11 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
   );
   const maxYear = rows[rows.length - 1].year;
 
+
+  const [hover, setHover] = useState<YearRow | null>(null);
+  const [hoverX, setHoverX] = useState<number | null>(null);
+
+
   const xScale = (year: number) =>
     padding + (year / Math.max(maxYear, 1)) * (width - padding * 2);
   const yScale = (value: number) =>
@@ -139,8 +157,38 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
   const endPoints = pointsFor((r) => r.endBalance);
   const contrPoints = pointsFor((r) => r.contribution);
 
+
+  const handleTouch = (evt: GestureResponderEvent) => {
+    const x = evt.nativeEvent.locationX;
+    const year = Math.round(
+      ((x - padding) / (width - padding * 2)) * maxYear
+    );
+    if (year < 0 || year > maxYear) {
+      setHover(null);
+      setHoverX(null);
+      return;
+    }
+    const row = rows.find((r) => r.year === year);
+    if (row) {
+      setHover(row);
+      setHoverX(xScale(row.year));
+    }
+  };
+
   return (
-    <Svg width={width} height={height} style={styles.chart}>
+    <Svg
+      width={width}
+      height={height}
+      style={styles.chart}
+      onStartShouldSetResponder={() => true}
+      onResponderMove={handleTouch}
+      onResponderGrant={handleTouch}
+      onResponderRelease={() => {
+        setHover(null);
+        setHoverX(null);
+      }}
+    >
+
       {/* axes */}
       <Line
         x1={padding}
@@ -248,6 +296,48 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
         strokeWidth="2"
         fill="none"
       />
+
+      {hover && hoverX !== null && (
+        <G>
+          <Line
+            x1={hoverX}
+            y1={padding}
+            x2={hoverX}
+            y2={height - padding}
+            stroke="gray"
+            strokeDasharray="4"
+          />
+          <Circle
+            cx={hoverX}
+            cy={yScale(hover.endBalance)}
+            r={4}
+            fill="blue"
+          />
+          <Rect
+            x={hoverX + 5}
+            y={yScale(hover.endBalance) - 30}
+            width={100}
+            height={30}
+            fill="white"
+            stroke="black"
+          />
+          <SvgText
+            x={hoverX + 10}
+            y={yScale(hover.endBalance) - 18}
+            fontSize="10"
+          >
+            {`Year ${hover.year}`}
+          </SvgText>
+          <SvgText
+            x={hoverX + 10}
+            y={yScale(hover.endBalance) - 8}
+            fontSize="10"
+          >
+            {`End ${formatAmount(hover.endBalance)}`}
+          </SvgText>
+        </G>
+      )}
+
     </Svg>
   );
 };
@@ -277,6 +367,7 @@ const styles = StyleSheet.create({
 
   chart: {
     marginTop: 20,
+    alignSelf: 'center',
   },
 
   row: {
