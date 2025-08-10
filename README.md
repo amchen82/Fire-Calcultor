@@ -1,7 +1,7 @@
 # Fire Calculator
 
 
-An offline Expo + React Native app that projects an investment balance once per year using annual compounding and plots yearly end balance and contributions.
+An offline Expo + React Native app that projects an investment balance once per year using annual compounding and plots yearly end balance and contributions with labeled axes and legend.
 
 
 ## Edge Cases
