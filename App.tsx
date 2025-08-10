@@ -8,6 +8,10 @@ import {
   Button,
   ScrollView,
   GestureResponderEvent,
+
+  SafeAreaView,
+  useWindowDimensions,
+
 } from 'react-native';
 import Svg, {
   Polyline,
@@ -40,8 +44,11 @@ export default function App() {
   };
 
   return (
-    <ScrollView contentContainerStyle={styles.container}>
-      <Text style={styles.title}>Fire Calculator</Text>
+
+    <SafeAreaView style={styles.safe}>
+      <ScrollView contentContainerStyle={styles.container}>
+        <Text style={styles.title}>Fire Calculator</Text>
+
       <TextInput
         style={styles.input}
         keyboardType="numeric"
@@ -105,17 +112,18 @@ export default function App() {
         </>
 
       )}
-    </ScrollView>
+      </ScrollView>
+    </SafeAreaView>
   );
 }
 
-
 const Chart = ({ rows }: { rows: YearRow[] }) => {
+  const { width: screenWidth } = useWindowDimensions();
   if (rows.length === 0) return null;
-  const width = 300;
+  const width = screenWidth - 40; // account for container padding
   const height = 200;
+  const padding = { top: 40, right: 40, bottom: 40, left: 60 };
 
-  const padding = 40;
   const maxY = Math.max(
     ...rows.map((r) => Math.max(r.endBalance, r.contribution))
   );
@@ -125,11 +133,14 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
   const [hover, setHover] = useState<YearRow | null>(null);
   const [hoverX, setHoverX] = useState<number | null>(null);
 
-
   const xScale = (year: number) =>
-    padding + (year / Math.max(maxYear, 1)) * (width - padding * 2);
+    padding.left +
+    (year / Math.max(maxYear, 1)) *
+      (width - padding.left - padding.right);
   const yScale = (value: number) =>
-    height - padding - (value / maxY) * (height - padding * 2);
+    height - padding.bottom -
+    (value / maxY) * (height - padding.top - padding.bottom);
+
 
   const pointsFor = (selector: (r: YearRow) => number) =>
     rows.map((r) => `${xScale(r.year)},${yScale(selector(r))}`).join(' ');
@@ -161,7 +172,8 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
   const handleTouch = (evt: GestureResponderEvent) => {
     const x = evt.nativeEvent.locationX;
     const year = Math.round(
-      ((x - padding) / (width - padding * 2)) * maxYear
+      ((x - padding.left) / (width - padding.left - padding.right)) * maxYear
+
     );
     if (year < 0 || year > maxYear) {
       setHover(null);
@@ -191,17 +203,18 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
 
       {/* axes */}
       <Line
-        x1={padding}
-        y1={padding}
-        x2={padding}
-        y2={height - padding}
+        x1={padding.left}
+        y1={padding.top}
+        x2={padding.left}
+        y2={height - padding.bottom}
         stroke="black"
       />
       <Line
-        x1={padding}
-        y1={height - padding}
-        x2={width - padding}
-        y2={height - padding}
+        x1={padding.left}
+        y1={height - padding.bottom}
+        x2={width - padding.right}
+        y2={height - padding.bottom}
+
         stroke="black"
       />
 
@@ -209,14 +222,18 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
       {yTicks.map((t) => (
         <G key={`y-${t.value}`}>
           <Line
-            x1={padding - 5}
+
+            x1={padding.left - 5}
             y1={t.y}
-            x2={padding}
+            x2={padding.left}
+
             y2={t.y}
             stroke="black"
           />
           <SvgText
-            x={padding - 8}
+
+            x={padding.left - 8}
+
             y={t.y}
             fontSize="10"
             textAnchor="end"
@@ -232,14 +249,18 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
         <G key={`x-${t.year}`}>
           <Line
             x1={t.x}
-            y1={height - padding}
+
+            y1={height - padding.bottom}
             x2={t.x}
-            y2={height - padding + 5}
+            y2={height - padding.bottom + 5}
+
             stroke="black"
           />
           <SvgText
             x={t.x}
-            y={height - padding + 15}
+
+            y={height - padding.bottom + 15}
+
             fontSize="10"
             textAnchor="middle"
           >
@@ -251,31 +272,39 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
       {/* legend */}
       <G>
         <Line
-          x1={width - padding - 80}
-          y1={padding}
-          x2={width - padding - 60}
-          y2={padding}
+
+          x1={width - padding.right - 80}
+          y1={padding.top}
+          x2={width - padding.right - 60}
+          y2={padding.top}
+
           stroke="blue"
           strokeWidth="2"
         />
         <SvgText
-          x={width - padding - 50}
-          y={padding + 4}
+
+          x={width - padding.right - 50}
+          y={padding.top + 4}
+
           fontSize="10"
         >
           End Balance
         </SvgText>
         <Line
-          x1={width - padding - 80}
-          y1={padding + 15}
-          x2={width - padding - 60}
-          y2={padding + 15}
+
+          x1={width - padding.right - 80}
+          y1={padding.top + 15}
+          x2={width - padding.right - 60}
+          y2={padding.top + 15}
+
           stroke="green"
           strokeWidth="2"
         />
         <SvgText
-          x={width - padding - 50}
-          y={padding + 19}
+
+          x={width - padding.right - 50}
+          y={padding.top + 19}
+
           fontSize="10"
         >
           Contribution
@@ -301,9 +330,11 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
         <G>
           <Line
             x1={hoverX}
-            y1={padding}
+
+            y1={padding.top}
             x2={hoverX}
-            y2={height - padding}
+            y2={height - padding.bottom}
+
             stroke="gray"
             strokeDasharray="4"
           />
@@ -343,11 +374,15 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
 };
 
 const styles = StyleSheet.create({
+
+  safe: {
+    flex: 1,
+    backgroundColor: '#fff',
+  },
   container: {
-    flexGrow: 1,
     padding: 20,
     paddingTop: 40,
-    backgroundColor: '#fff',
+
   },
   title: {
     fontSize: 24,
