@@ -12,8 +12,9 @@ export function project(
   annualReturnRate: number,
   annualContribution: number,
   withdrawStartYear: number,
-  withdrawPercent: number
-): YearRow[] {
+  withdrawPercent: number,
+  withdrawAmount?: number
+  ): YearRow[] {
   const rows: YearRow[] = [];
   let balance = initialAmount;
   for (let year = 0; year < 60 && balance > 0; year++) {
@@ -21,8 +22,13 @@ export function project(
     let withdrawal = 0;
     let contribution = 0;
     if (year >= withdrawStartYear) {
-      withdrawal = balance * (withdrawPercent / 100);
-      balance -= withdrawal;
+      if (withdrawAmount !== undefined) {
+        withdrawal = withdrawAmount;
+        balance -= withdrawal;
+      } else {
+        withdrawal = balance * (withdrawPercent / 100);
+        balance -= withdrawal;
+      }
     }
     balance *= 1 + annualReturnRate / 100;
     const growth = balance - (startBalance - withdrawal);
