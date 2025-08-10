@@ -1,6 +1,10 @@
 import React, { useState } from 'react';
 import { StyleSheet, Text, View, TextInput, Button, ScrollView } from 'react-native';
+
 import Svg, { Polyline, Line, Text as SvgText, G } from 'react-native-svg';
+
+
+
 import { project, YearRow } from './project';
 
 export default function App() {
@@ -62,6 +66,7 @@ export default function App() {
       />
       <Button title="Project" onPress={handleCalculate} />
       {rows.length > 0 && (
+
         <>
           <Chart rows={rows} />
           <View style={styles.table}>
@@ -85,15 +90,18 @@ export default function App() {
             ))}
           </View>
         </>
+
       )}
     </ScrollView>
   );
 }
 
+
 const Chart = ({ rows }: { rows: YearRow[] }) => {
   if (rows.length === 0) return null;
   const width = 300;
   const height = 200;
+
   const padding = 40;
   const maxY = Math.max(
     ...rows.map((r) => Math.max(r.endBalance, r.contribution))
@@ -227,6 +235,7 @@ const Chart = ({ rows }: { rows: YearRow[] }) => {
       </G>
 
       {/* data lines */}
+
       <Polyline
         points={endPoints}
         stroke="blue"
@@ -265,9 +274,11 @@ const styles = StyleSheet.create({
   table: {
     marginTop: 20,
   },
+
   chart: {
     marginTop: 20,
   },
+
   row: {
     flexDirection: 'row',
   },
