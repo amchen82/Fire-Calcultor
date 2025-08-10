@@ -20,8 +20,10 @@ import Svg, {
 } from 'react-native-svg';
 import { project, YearRow } from './project';
 import DataTableCard from "./components/DataTableCard";
+import LoginScreen from "./components/LoginScreen";
 
 export default function App() {
+  const [loggedIn, setLoggedIn] = useState(false);
   const [tableCollapsed, setTableCollapsed] = useState(true);
   const [plotColumns, setPlotColumns] = useState({
     endBalance: true,
@@ -58,6 +60,9 @@ export default function App() {
     );
     setRows(results);
   };
+  if (!loggedIn) {
+    return <LoginScreen onLogin={() => setLoggedIn(true)} />;
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
