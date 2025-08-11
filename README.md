@@ -4,6 +4,8 @@ An offline Expo + React Native app that projects an investment balance once per 
 
 Styled with a dark theme and green accents inspired by the Robinhood app.
 
+Includes buttons to save and load scenario inputs using local storage.
+
 ## Edge Cases
 - Negative or zero annual return rate.
 - Immediate withdrawal when `withdrawStartYear` is 0.

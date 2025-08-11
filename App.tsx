@@ -20,6 +20,7 @@ import Svg, {
 } from 'react-native-svg';
 import { project, YearRow } from './project';
 import DataTableCard from "./components/DataTableCard";
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function App() {
   const [tableCollapsed, setTableCollapsed] = useState(true);
@@ -42,6 +43,42 @@ export default function App() {
   const [withdrawPercent, setWithdrawPercent] = useState('4');
   const [withdrawAmount, setWithdrawAmount] = useState('10000');
   const [rows, setRows] = useState<YearRow[]>([]);
+
+  const STORAGE_KEY = 'fire-calculator-scenario';
+
+  const handleSave = async () => {
+    try {
+      const scenario = {
+        initialAmount,
+        annualReturnRate,
+        annualContribution,
+        withdrawStartYear,
+        withdrawType,
+        withdrawPercent,
+        withdrawAmount,
+      };
+      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(scenario));
+    } catch {
+      // ignore write errors
+    }
+  };
+
+  const handleLoad = async () => {
+    try {
+      const json = await AsyncStorage.getItem(STORAGE_KEY);
+      if (!json) return;
+      const scenario = JSON.parse(json);
+      setInitialAmount(scenario.initialAmount ?? '');
+      setAnnualReturnRate(scenario.annualReturnRate ?? '');
+      setAnnualContribution(scenario.annualContribution ?? '');
+      setWithdrawStartYear(scenario.withdrawStartYear ?? '');
+      setWithdrawType(scenario.withdrawType === 'amount' ? 'amount' : 'percent');
+      setWithdrawPercent(scenario.withdrawPercent ?? '');
+      setWithdrawAmount(scenario.withdrawAmount ?? '');
+    } catch {
+      // ignore read errors
+    }
+  };
 
   React.useEffect(() => {
     if (rows.length > 0) setTableCollapsed(false);
@@ -181,6 +218,14 @@ export default function App() {
             <Text style={styles.plotOptionText}>Start Balance</Text>
           </TouchableOpacity>
         </View>
+      </View>
+      <View style={styles.saveLoadRow}>
+        <TouchableOpacity style={[styles.button, styles.halfButton, styles.saveButton]} onPress={handleSave}>
+          <Text style={styles.buttonText}>Save</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={[styles.button, styles.halfButton]} onPress={handleLoad}>
+          <Text style={styles.buttonText}>Load</Text>
+        </TouchableOpacity>
       </View>
       <TouchableOpacity style={styles.button} onPress={handleCalculate}>
         <Text style={styles.buttonText}>Project</Text>
@@ -518,6 +563,17 @@ const styles = StyleSheet.create({
     borderRadius: 4,
     alignItems: 'center',
     marginTop: 10,
+  },
+  saveLoadRow: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  halfButton: {
+    flex: 1,
+    marginTop: 0,
+  },
+  saveButton: {
+    marginRight: 10,
   },
   buttonText: {
     color: '#000',
