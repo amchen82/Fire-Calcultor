@@ -9,6 +9,8 @@ import {
   SafeAreaView,
   TouchableOpacity,
   useWindowDimensions,
+  Alert,
+  Platform,
 } from 'react-native';
 import Svg, {
   Polyline,
@@ -47,19 +49,42 @@ export default function App() {
   const STORAGE_KEY = 'fire-calculator-scenario';
 
   const handleSave = async () => {
-    try {
-      const scenario = {
-        initialAmount,
-        annualReturnRate,
-        annualContribution,
-        withdrawStartYear,
-        withdrawType,
-        withdrawPercent,
-        withdrawAmount,
-      };
-      await AsyncStorage.setItem(STORAGE_KEY, JSON.stringify(scenario));
-    } catch {
-      // ignore write errors
+    const scenario = {
+      initialAmount,
+      annualReturnRate,
+      annualContribution,
+      withdrawStartYear,
+      withdrawType,
+      withdrawPercent,
+      withdrawAmount,
+    };
+
+    const doSave = async (name: string) => {
+      try {
+        await AsyncStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify({ ...scenario, name })
+        );
+      } catch {
+        // ignore write errors
+      }
+    };
+
+    if (Platform.OS === 'web') {
+      const name = window.prompt('Enter scenario name');
+      if (name) {
+        await doSave(name);
+      }
+    } else {
+      Alert.prompt(
+        'Save Scenario',
+        'Enter scenario name',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          { text: 'Save', onPress: (name) => { if (name) doSave(name); } },
+        ],
+        'plain-text'
+      );
     }
   };
 
