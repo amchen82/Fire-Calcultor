@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "Fire-Calcultor",
+    "name": "FIRE Calculator",
     "slug": "Fire-Calcultor",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -13,7 +13,11 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.chenf82.Fire-Calculator",
+      "infoPlist": {
+        "CFBundleDisplayName": "FIRE Calculator"
+      }
     },
     "android": {
       "adaptiveIcon": {
