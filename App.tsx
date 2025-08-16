@@ -375,15 +375,20 @@ const Chart = ({ rows, plotColumns }: { rows: YearRow[]; plotColumns: Record<str
       {columnsToPlot.map((col) => {
         // Calculate max value for this column
         const maxColValue = Math.max(...rows.map((r) => getValue(r, col)));
+        // Avoid divide-by-zero when the selected column has all zero values
+        const safeMax = Math.max(maxColValue, 1);
         // Calculate yTicks for this column
         const colYTicks = Array.from({ length: 5 }, (_, i) => {
           // Round value to avoid floating point key collisions
-          const value = Math.round((maxColValue / 4) * i * 100) / 100;
-          return { value, y: height - padding.bottom - (value / maxColValue) * (height - padding.top - padding.bottom) };
+          const value = Math.round((safeMax / 4) * i * 100) / 100;
+          return {
+            value: maxColValue === 0 ? 0 : value,
+            y: height - padding.bottom - (value / safeMax) * (height - padding.top - padding.bottom),
+          };
         });
         // yScale for this column
         const colYScale = (value: number) =>
-          height - padding.bottom - (value / maxColValue) * (height - padding.top - padding.bottom);
+          height - padding.bottom - (value / safeMax) * (height - padding.top - padding.bottom);
 
         return (
           <View key={`chart-${col}`} style={{ marginBottom: 24 }}>
