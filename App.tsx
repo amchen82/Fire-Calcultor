@@ -125,6 +125,7 @@ export default function App() {
     <SafeAreaView style={styles.safe}>
       <ScrollView contentContainerStyle={styles.container}>
         <Text style={styles.title}>Fire Calculator</Text>
+        <Text style={styles.title}>Financial Independence & Retire Early</Text>
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Initial Amount</Text>
         <TextInput
