@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
+
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Modal } from 'react-native';
+
 
 interface LoginContextValue {
   isLoggedIn: boolean;
@@ -82,6 +84,7 @@ export const LoginForm = () => {
     password,
     setUsername,
     setPassword,
+
     setShowLogin,
     handleLogin,
   } = useLogin();
@@ -125,6 +128,7 @@ export const LoginForm = () => {
         </View>
       </View>
     </Modal>
+
   );
 };
 
@@ -143,10 +147,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   loginForm: {
+
     backgroundColor: '#1C1C1E',
     padding: 20,
     borderRadius: 8,
     width: '80%',
+
   },
   loginTitle: {
     color: '#fff',
@@ -173,6 +179,7 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -183,6 +190,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#555',
     marginTop: 8,
   },
+
 });
 
 export default LoginProvider;
