@@ -23,6 +23,7 @@ import Svg, {
 import { project, YearRow } from './project';
 import DataTableCard from "./components/DataTableCard";
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { LoginProvider, LoginButton, LoginForm } from './components/Login';
 
 export default function App() {
   const [tableCollapsed, setTableCollapsed] = useState(true);
@@ -122,10 +123,13 @@ export default function App() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
-      <ScrollView contentContainerStyle={styles.container}>
-        <Text style={styles.title}>Fire Calculator</Text>
-        <Text style={styles.title}>Financial Independence & Retire Early</Text>
+    <LoginProvider>
+      <SafeAreaView style={styles.safe}>
+        <LoginButton />
+        <ScrollView contentContainerStyle={styles.container}>
+          <LoginForm />
+          <Text style={styles.title}>Fire Calculator</Text>
+          <Text style={styles.title}>Financial Independence & Retire Early</Text>
       <View style={styles.inputGroup}>
         <Text style={styles.inputLabel}>Initial Amount</Text>
         <TextInput
@@ -294,6 +298,7 @@ export default function App() {
       }
       </ScrollView>
     </SafeAreaView>
+  </LoginProvider>
   );
 }
 
