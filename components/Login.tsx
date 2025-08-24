@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet } from 'react-native';
+
+import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Modal } from 'react-native';
+
 
 interface LoginContextValue {
   isLoggedIn: boolean;
@@ -82,35 +84,51 @@ export const LoginForm = () => {
     password,
     setUsername,
     setPassword,
+
+    setShowLogin,
     handleLogin,
   } = useLogin();
 
-  if (!showLogin || isLoggedIn) return null;
-
   return (
-    <View style={styles.loginForm}>
-      <Text style={styles.loginTitle}>User Login</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Username"
-        placeholderTextColor="#888"
-        keyboardAppearance="dark"
-        value={username}
-        onChangeText={setUsername}
-      />
-      <TextInput
-        style={styles.input}
-        placeholder="Password"
-        placeholderTextColor="#888"
-        keyboardAppearance="dark"
-        secureTextEntry
-        value={password}
-        onChangeText={setPassword}
-      />
-      <TouchableOpacity style={styles.button} onPress={handleLogin}>
-        <Text style={styles.buttonText}>Login</Text>
-      </TouchableOpacity>
-    </View>
+    <Modal
+      transparent
+      animationType="fade"
+      visible={showLogin && !isLoggedIn}
+      onRequestClose={() => setShowLogin(false)}
+    >
+      <View style={styles.modalOverlay}>
+        <View style={styles.loginForm}>
+          <Text style={styles.loginTitle}>User Login</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Username"
+            placeholderTextColor="#888"
+            keyboardAppearance="dark"
+            value={username}
+            onChangeText={setUsername}
+          />
+          <TextInput
+            style={styles.input}
+            placeholder="Password"
+            placeholderTextColor="#888"
+            keyboardAppearance="dark"
+            secureTextEntry
+            value={password}
+            onChangeText={setPassword}
+          />
+          <TouchableOpacity style={styles.button} onPress={handleLogin}>
+            <Text style={styles.buttonText}>Login</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.button, styles.cancelButton]}
+            onPress={() => setShowLogin(false)}
+          >
+            <Text style={styles.buttonText}>Cancel</Text>
+          </TouchableOpacity>
+        </View>
+      </View>
+    </Modal>
+
   );
 };
 
@@ -129,7 +147,12 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
   },
   loginForm: {
-    marginBottom: 20,
+
+    backgroundColor: '#1C1C1E',
+    padding: 20,
+    borderRadius: 8,
+    width: '80%',
+
   },
   loginTitle: {
     color: '#fff',
@@ -156,6 +179,18 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
+
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  cancelButton: {
+    backgroundColor: '#555',
+    marginTop: 8,
+  },
+
 });
 
 export default LoginProvider;
