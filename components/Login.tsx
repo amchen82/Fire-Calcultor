@@ -14,6 +14,13 @@ interface LoginContextValue {
   setPassword: (v: string) => void;
   handleLogin: () => void;
   handleLogout: () => void;
+  showCreate: boolean;
+  setShowCreate: (v: boolean) => void;
+  handleCreateAccount: () => void;
+  createUsername: string;
+  setCreateUsername: (v: string) => void;
+  createPassword: string;
+  setCreatePassword: (v: string) => void;
 }
 
 const LoginContext = createContext<LoginContextValue | undefined>(undefined);
@@ -25,25 +32,51 @@ export const validateCredentials = (username: string, password: string) =>
 
 export const LoginProvider = ({ children }: { children: React.ReactNode }) => {
   const [showLogin, setShowLogin] = useState(false);
+  const [showCreate, setShowCreate] = useState(false);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [isLoggedIn, setIsLoggedIn] = useState(false);
+  // Demo: store accounts in memory (object). Replace with persistent storage for real app.
+  const [accounts, setAccounts] = useState<{ [user: string]: string }>({ user: 'pass123' });
+  const [createUsername, setCreateUsername] = useState('');
+  const [createPassword, setCreatePassword] = useState('');
 
   const handleLogin = () => {
-
-    if (username.trim() === 'user' && password === 'pass123') {
-
+    console.log('LoginProvider: handleLogin attempt', { username });
+    if (accounts[username.trim()] && accounts[username.trim()] === password) {
+      console.log('LoginProvider: login success');
       setIsLoggedIn(true);
       setShowLogin(false);
       setUsername('');
       setPassword('');
     } else {
+      console.log('LoginProvider: login failed');
       Alert.alert('Login failed', 'Invalid username or password');
     }
   };
 
   const handleLogout = () => {
+    console.log('LoginProvider: handleLogout');
     setIsLoggedIn(false);
+  };
+
+  const handleCreateAccount = () => {
+    if (!createUsername.trim() || !createPassword) {
+      Alert.alert('Error', 'Username and password required');
+      return;
+    }
+    if (accounts[createUsername.trim()]) {
+      Alert.alert('Error', 'Username already exists');
+      return;
+    }
+    setAccounts((prev) => ({ ...prev, [createUsername.trim()]: createPassword }));
+    setShowCreate(false);
+    setShowLogin(true);
+    setUsername(createUsername.trim());
+    setPassword(createPassword);
+    setCreateUsername('');
+    setCreatePassword('');
+    Alert.alert('Account created', 'You can now log in.');
   };
 
   return (
@@ -58,6 +91,13 @@ export const LoginProvider = ({ children }: { children: React.ReactNode }) => {
         setPassword,
         handleLogin,
         handleLogout,
+        showCreate,
+        setShowCreate,
+        handleCreateAccount,
+        createUsername,
+        setCreateUsername,
+        createPassword,
+        setCreatePassword,
       }}
     >
       {children}
@@ -74,11 +114,11 @@ export const useLogin = () => {
 export const LoginButton = () => {
   const { isLoggedIn, setShowLogin, handleLogout } = useLogin();
   return isLoggedIn ? (
-    <TouchableOpacity style={styles.loginButton} onPress={handleLogout}>
+    <TouchableOpacity style={styles.loginButton} onPress={() => { console.log('LoginButton: Logout pressed'); handleLogout(); }}>
       <Text style={styles.loginButtonText}>Logout</Text>
     </TouchableOpacity>
   ) : (
-    <TouchableOpacity style={styles.loginButton} onPress={() => setShowLogin(true)}>
+    <TouchableOpacity style={styles.loginButton} onPress={() => { console.log('LoginButton: Login pressed'); setShowLogin(true); }}>
       <Text style={styles.loginButtonText}>Login</Text>
     </TouchableOpacity>
   );
@@ -94,69 +134,125 @@ export const LoginForm = () => {
     setPassword,
     setShowLogin,
     handleLogin,
+    showCreate,
+    setShowCreate,
+    handleCreateAccount,
+    createUsername,
+    setCreateUsername,
+    createPassword,
+    setCreatePassword,
   } = useLogin();
 
-  return (
-    <Modal
-      transparent
-      animationType="fade"
-      visible={showLogin && !isLoggedIn}
-      onRequestClose={() => setShowLogin(false)}
-    >
-      <View style={styles.modalOverlay}>
+  React.useEffect(() => {
+    console.log('LoginForm: visibility change', { showLogin, isLoggedIn, username });
+  }, [showLogin, isLoggedIn, username]);
+
+  if (showCreate) {
+    return (
+      <View style={[styles.modalOverlay, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }]}> 
         <View style={styles.loginForm}>
-          <Text style={styles.loginTitle}>User Login</Text>
+          <Text style={styles.loginTitle}>Create Account</Text>
           <TextInput
             style={styles.input}
-            placeholder="Username"
+            placeholder="New Username"
             placeholderTextColor="#888"
             keyboardAppearance="dark"
-            value={username}
-            onChangeText={setUsername}
+            value={createUsername}
+            onChangeText={setCreateUsername}
           />
           <TextInput
             style={styles.input}
-            placeholder="Password"
+            placeholder="New Password"
             placeholderTextColor="#888"
             keyboardAppearance="dark"
             secureTextEntry
-            value={password}
-            onChangeText={setPassword}
+            value={createPassword}
+            onChangeText={setCreatePassword}
           />
-          <TouchableOpacity style={styles.button} onPress={handleLogin}>
-            <Text style={styles.buttonText}>Login</Text>
+          <TouchableOpacity style={styles.button} onPress={handleCreateAccount}>
+            <Text style={styles.buttonText}>Create</Text>
           </TouchableOpacity>
           <TouchableOpacity
             style={[styles.button, styles.cancelButton]}
-            onPress={() => setShowLogin(false)}
+            onPress={() => { setShowCreate(false); setShowLogin(true); }}
           >
             <Text style={styles.buttonText}>Cancel</Text>
           </TouchableOpacity>
         </View>
       </View>
-    </Modal>
+    );
+  }
+
+  if (!(showLogin && !isLoggedIn)) return null;
+  return (
+    <View style={[styles.modalOverlay, { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 999 }]}> 
+      <View style={styles.loginForm}>
+        <Text style={styles.loginTitle}>User Login</Text>
+        <TextInput
+          style={styles.input}
+          placeholder="Username"
+          placeholderTextColor="#888"
+          keyboardAppearance="dark"
+          value={username}
+          onChangeText={setUsername}
+        />
+        <TextInput
+          style={styles.input}
+          placeholder="Password"
+          placeholderTextColor="#888"
+          keyboardAppearance="dark"
+          secureTextEntry
+          value={password}
+          onChangeText={setPassword}
+        />
+        <TouchableOpacity style={styles.button} onPress={handleLogin}>
+          <Text style={styles.buttonText}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, styles.cancelButton]}
+          onPress={() => setShowLogin(false)}
+        >
+          <Text style={styles.buttonText}>Cancel</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={[styles.button, { backgroundColor: '#2196F3', marginTop: 8 }]}
+          onPress={() => { setShowLogin(false); setShowCreate(true); }}
+        >
+          <Text style={[styles.buttonText, { color: '#fff' }]}>Create Account</Text>
+        </TouchableOpacity>
+      </View>
+    </View>
   );
 };
 
 const styles = StyleSheet.create({
   loginButton: {
-    position: 'absolute',
-    top: 10,
-    right: 10,
     backgroundColor: '#00C805',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 4,
+    alignSelf: 'flex-end',
+    marginTop: 10,
+    marginRight: 10,
   },
   loginButtonText: {
     color: '#000',
     fontWeight: 'bold',
   },
   loginForm: {
-    backgroundColor: '#1C1C1E',
-    padding: 20,
-    borderRadius: 8,
-    width: '80%',
+    backgroundColor: '#222',
+    padding: 28,
+    borderRadius: 12,
+    width: '90%',
+    maxWidth: 340,
+    borderWidth: 2,
+    borderColor: '#fff',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.35,
+    shadowRadius: 16,
+    elevation: 12,
+    alignItems: 'stretch',
   },
   loginTitle: {
     color: '#fff',
@@ -186,9 +282,10 @@ const styles = StyleSheet.create({
 
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.75)',
     justifyContent: 'center',
     alignItems: 'center',
+    zIndex: 999,
   },
   cancelButton: {
     backgroundColor: '#555',
