@@ -1,81 +1,72 @@
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
+# Node
 node_modules/
 package-lock.json
+yarn.lock
+pnpm-lock.yaml
 
-# Expo
+# Expo / React Native
 .expo/
+.expo-shared/
+.eas/
+.web_build/
 dist/
-web-build/
-expo-env.d.ts
-assets/
+build/
 
-# Native
-.kotlin/
-*.orig.*
-*.jks
+# Local Expo files
+.expo/local/
+
+# Do NOT ignore assets/ — keep your app icons and splash images in version control
+
+# iOS
+ios/Pods/
+ios/Build/
+ios/DerivedData/
+*.xcworkspace/xcshareddata/
+*.xcuserdata/
+*.xcuserstate
+
+# Keep ios/Podfile and ios/Podfile.lock in repo for reproducible installs
+
+# Android
+android/.gradle/
+android/app/build/
+android/build/
+
+# macOS
+.DS_Store
+
+# Editor / IDE
+.vscode/
+.idea/
+*.sublime-* 
+
+# TypeScript
+*.tsbuildinfo
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Credentials / secrets (DO NOT commit)
 *.p8
 *.p12
 *.key
 *.mobileprovision
+credentials.json
+.env
+.env.*
+secrets.json
+fastlane/
 
-# Metro
-.metro-health-check*
+# Android / Google services (local dev files)
+google-services.json
 
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+# Misc
+.pnpm-store/
 
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
-
-# Learn more https://docs.github.com/en/get-started/getting-started-with-git/ignoring-files
-
-# dependencies
-node_modules/
-
-package-lock.json
-
-
-# Expo
-.expo/
-dist/
-web-build/
-expo-env.d.ts
-assets/
-
-# Native
-.kotlin/
-*.orig.*
-*.jks
-*.p8
-*.p12
-*.key
-*.mobileprovision
-
-# Metro
-.metro-health-check*
-
-# debug
-npm-debug.*
-yarn-debug.*
-yarn-error.*
-
-# macOS
-.DS_Store
-*.pem
-
-# local env files
-.env*.local
-
-# typescript
-*.tsbuildinfo
+# Optional: ignore native folders if you don't maintain them locally
+# ios/
+# android/
