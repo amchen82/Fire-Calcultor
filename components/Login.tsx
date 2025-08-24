@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useState } from 'react';
+
 import { View, Text, TextInput, TouchableOpacity, Alert, StyleSheet, Modal } from 'react-native';
+
+
 
 interface LoginContextValue {
   isLoggedIn: boolean;
@@ -15,8 +18,10 @@ interface LoginContextValue {
 
 const LoginContext = createContext<LoginContextValue | undefined>(undefined);
 
+
 export const validateCredentials = (username: string, password: string) =>
   username.trim() === 'user' && password === 'pass123';
+
 
 export const LoginProvider = ({ children }: { children: React.ReactNode }) => {
   const [showLogin, setShowLogin] = useState(false);
@@ -25,7 +30,9 @@ export const LoginProvider = ({ children }: { children: React.ReactNode }) => {
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const handleLogin = () => {
-    if (validateCredentials(username, password)) {
+
+    if (username.trim() === 'user' && password === 'pass123') {
+
       setIsLoggedIn(true);
       setShowLogin(false);
       setUsername('');
@@ -176,6 +183,7 @@ const styles = StyleSheet.create({
     color: '#000',
     fontWeight: 'bold',
   },
+
   modalOverlay: {
     flex: 1,
     backgroundColor: 'rgba(0,0,0,0.5)',
@@ -186,6 +194,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#555',
     marginTop: 8,
   },
+
 });
 
 export default LoginProvider;
