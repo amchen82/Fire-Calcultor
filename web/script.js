@@ -31,13 +31,13 @@ updateWithdrawFields();
 
 function getScenario() {
   return {
-    initialAmount: Number(initialAmountInput.value) || 0,
-    annualReturnRate: Number(annualReturnRateInput.value) || 0,
-    annualContribution: Number(annualContributionInput.value) || 0,
-    withdrawStartYear: parseInt(withdrawStartYearInput.value, 10) || 0,
+    initialAmount: Number(initialAmountInput.value) || 10000,
+    annualReturnRate: Number(annualReturnRateInput.value) || 7,
+    annualContribution: Number(annualContributionInput.value) || 10000,
+    withdrawStartYear: parseInt(withdrawStartYearInput.value, 10) || 20,
     withdrawType: withdrawTypeSelect.value,
-    withdrawPercent: Number(withdrawPercentInput.value) || 0,
-    withdrawAmount: Number(withdrawAmountInput.value) || 0,
+    withdrawPercent: Number(withdrawPercentInput.value) || 4,
+    withdrawAmount: Number(withdrawAmountInput.value) || 10000,
   };
 }
 
