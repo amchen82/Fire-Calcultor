@@ -1,0 +1,17 @@
+{
+  "appId": "com.infinityknowledge.firecalculator",
+  "appName": "FIRE Calculator",
+  "webDir": "www",
+  "server": {
+    "allowNavigation": []
+  },
+  "ios": {
+    "contentInset": "always",
+    "allowsLinkPreview": false,
+    "scrollEnabled": false,
+    "backgroundColor": "#0a0f1e"
+  },
+  "android": {
+    "backgroundColor": "#0a0f1e"
+  }
+}

@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>FIRE Calculator — Financial Independence</title>
+<style>
+/* ── Reset ── */
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+html{height:100%;font-size:16px;}body{height:100%;background:#0a0f1e;color:#e8eaf0;font-family:-apple-system,'SF Pro Display','Segoe UI',sans-serif;overflow:hidden;position:fixed;width:100%;}
+
+/* ── Color tokens ── */
+:root{
+  --bg:         #0a0f1e;
+  --surface:    #111827;
+  --surface2:   #1a2237;
+  --border:     rgba(255,255,255,.08);
+  --accent:     #22c55e;
+  --accent2:    #3b82f6;
+  --accent3:    #f59e0b;
+  --accent4:    #ef4444;
+  --text:       #e8eaf0;
+  --muted:      rgba(232,234,240,.5);
+  --card-r:     16px;
+}
+
+/* ── Layout ── */
+.app{max-width:480px;margin:0 auto;height:100vh;display:flex;flex-direction:column;position:relative;}
+
+/* ── Header ── */
+.header{padding:56px 20px 24px;background:linear-gradient(160deg,#0d1526 0%,#111827 100%);border-bottom:1px solid var(--border);flex-shrink:0;z-index:50;}
+.header-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;}
+.logo{display:flex;align-items:center;gap:8px;}
+.logo-icon{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#f59e0b,#3b82f6);display:flex;align-items:center;justify-content:center;font-size:18px;}
+.logo-text{font-size:17px;font-weight:800;letter-spacing:-.3px;}
+.logo-text span{color:var(--accent);}
+.tab-row{display:flex;gap:4px;margin-top:14px;background:var(--surface2);border-radius:12px;padding:4px;}
+.tab{flex:1;text-align:center;padding:8px 4px;border-radius:8px;font-size:12px;font-weight:700;color:var(--muted);cursor:pointer;border:none;background:none;transition:all .2s;}
+.tab.active{background:var(--surface);color:var(--text);box-shadow:0 1px 4px rgba(0,0,0,.3);}
+
+/* ── Screens ── */
+.screen{display:none;}
+.screen.active{display:block;overflow-y:auto;-webkit-overflow-scrolling:touch;height:calc(100vh - 140px);padding:20px;padding-bottom:80px;}
+
+/* ── Section title ── */
+.section-title{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--muted);margin:24px 0 10px;}
+.section-title:first-child{margin-top:0;}
+
+/* ── Cards ── */
+.card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;margin-bottom:12px;}
+.card-header{padding:14px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;}
+.card-title{font-size:13px;font-weight:700;color:var(--muted);}
+.card-body{padding:16px;}
+
+/* ── Inputs ── */
+.field{margin-bottom:14px;}
+.field:last-child{margin-bottom:0;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--muted);margin-bottom:6px;letter-spacing:.3px;}
+.input-wrap{position:relative;}
+.prefix,.suffix{position:absolute;top:50%;transform:translateY(-50%);font-size:14px;color:var(--muted);font-weight:600;pointer-events:none;}
+.prefix{left:12px;}
+.suffix{right:12px;}
+input[type=number],input[type=text]{
+  width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;
+  color:var(--text);font-size:16px;padding:12px 14px;outline:none;
+  -webkit-appearance:none;appearance:none;transition:border-color .2s;
+}
+input[type=number]:focus,input[type=text]:focus{border-color:var(--accent2);}
+input.has-prefix{padding-left:28px;}
+input.has-suffix{padding-right:36px;}
+input[type=range]{width:100%;accent-color:var(--accent2);height:4px;margin-top:6px;cursor:pointer;}
+.range-labels{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;}
+
+/* ── Segmented control ── */
+.seg{display:flex;background:var(--surface2);border-radius:10px;padding:3px;gap:3px;margin-bottom:14px;}
+.seg-btn{flex:1;text-align:center;padding:8px;border-radius:7px;font-size:13px;font-weight:700;color:var(--muted);cursor:pointer;border:none;background:none;transition:all .18s;}
+.seg-btn.active{background:var(--surface);color:var(--text);box-shadow:0 1px 3px rgba(0,0,0,.4);}
+
+/* ── FIRE type pills ── */
+.fire-types{display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;}
+.fire-pill{padding:6px 14px;border-radius:999px;font-size:12px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);transition:all .18s;}
+.fire-pill.lean{border-color:#f59e0b;} .fire-pill.lean.active{background:#f59e0b;color:#000;}
+.fire-pill.regular{border-color:#3b82f6;} .fire-pill.regular.active{background:#3b82f6;color:#fff;}
+.fire-pill.fat{border-color:#22c55e;} .fire-pill.fat.active{background:#22c55e;color:#000;}
+.fire-pill.coast{border-color:#a78bfa;} .fire-pill.coast.active{background:#a78bfa;color:#000;}
+
+/* ── Big calculate button ── */
+.calc-btn{
+  width:100%;padding:16px;border:none;border-radius:14px;
+  background:linear-gradient(135deg,#f59e0b,#d97706);
+  color:#fff;font-size:16px;font-weight:800;cursor:pointer;
+  letter-spacing:.2px;margin-top:8px;
+  box-shadow:0 4px 20px rgba(245,158,11,.3);
+  transition:opacity .2s,transform .1s;
+}
+.calc-btn:active{opacity:.85;transform:scale(.98);}
+
+/* ── Result cards ── */
+.results{display:none;}
+.results.show{display:block;}
+.result-hero{
+  background:linear-gradient(135deg,#111f2e,#0d1a0d);
+  border:1px solid rgba(245,158,11,.25);
+  border-radius:var(--card-r);padding:24px;margin-bottom:12px;text-align:center;
+}
+.result-hero .label{font-size:11px;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:var(--accent);margin-bottom:8px;}
+.result-hero .number{font-size:42px;font-weight:900;letter-spacing:-2px;color:#fff;line-height:1;}
+.result-hero .sub{font-size:13px;color:var(--muted);margin-top:6px;}
+.kpi-row{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:12px;}
+.kpi{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:16px;}
+.kpi .k-label{font-size:10px;font-weight:700;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:6px;}
+.kpi .k-val{font-size:22px;font-weight:800;letter-spacing:-.5px;}
+.kpi .k-val.green{color:var(--accent);}
+.kpi .k-val.blue{color:var(--accent2);}
+.kpi .k-val.amber{color:var(--accent3);}
+.kpi .k-val.red{color:var(--accent4);}
+.kpi .k-sub{font-size:11px;color:var(--muted);margin-top:2px;}
+
+/* ── Progress bar ── */
+.progress-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:16px;margin-bottom:12px;}
+.progress-label{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px;}
+.progress-bar{height:10px;background:var(--surface2);border-radius:999px;overflow:hidden;}
+.progress-fill{height:100%;border-radius:999px;transition:width 1s cubic-bezier(.2,.8,.2,1);}
+
+/* ── Chart ── */
+.chart-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:16px;margin-bottom:12px;overflow:hidden;}
+.chart-tabs{display:flex;gap:6px;margin-bottom:14px;flex-wrap:wrap;}
+.chart-tab{padding:5px 12px;border-radius:999px;font-size:11px;font-weight:700;cursor:pointer;border:1.5px solid var(--border);background:none;color:var(--muted);transition:all .15s;}
+.chart-tab.active{border-color:var(--accent2);color:var(--accent2);background:rgba(59,130,246,.1);}
+canvas#chart{width:100%;max-width:100%;height:200px;border-radius:8px;display:block;}
+
+/* ── Milestones ── */
+.milestones{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;margin-bottom:12px;}
+.milestone{display:flex;align-items:center;gap:12px;padding:12px 16px;border-bottom:1px solid var(--border);}
+.milestone:last-child{border-bottom:none;}
+.ms-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0;}
+.ms-info{flex:1;}
+.ms-name{font-size:13px;font-weight:700;}
+.ms-val{font-size:12px;color:var(--muted);margin-top:1px;}
+.ms-badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:999px;}
+.ms-badge.done{background:rgba(245,158,11,.15);color:var(--accent);}
+.ms-badge.pending{background:rgba(255,255,255,.06);color:var(--muted);}
+
+/* ── Table ── */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);overflow:hidden;margin-bottom:12px;}
+.table-scroll{overflow-x:auto;-webkit-overflow-scrolling:touch;}
+table{width:100%;border-collapse:collapse;font-size:12px;}
+th{background:var(--surface2);padding:10px 12px;text-align:right;font-size:10px;font-weight:700;letter-spacing:.8px;text-transform:uppercase;color:var(--muted);white-space:nowrap;}
+th:first-child{text-align:left;}
+td{padding:10px 12px;text-align:right;border-top:1px solid var(--border);color:var(--text);}
+td:first-child{text-align:left;font-weight:700;color:var(--muted);}
+tr.withdrawal-row td{color:var(--accent3);}
+tr.depleted-row td{color:var(--accent4);}
+tr.fire-row td{color:var(--accent);}
+
+/* ── Scenarios screen ── */
+.scenario-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);padding:16px;margin-bottom:10px;cursor:pointer;transition:border-color .2s;}
+.scenario-card:active{border-color:var(--accent2);}
+.sc-header{display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;}
+.sc-name{font-size:15px;font-weight:800;}
+.sc-date{font-size:11px;color:var(--muted);}
+.sc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.sc-stat .s-label{font-size:10px;color:var(--muted);font-weight:600;}
+.sc-stat .s-val{font-size:13px;font-weight:800;color:var(--accent);}
+.sc-actions{display:flex;gap:8px;margin-top:12px;}
+.sc-btn{flex:1;padding:8px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--border);background:none;color:var(--muted);}
+.sc-btn.load{border-color:var(--accent2);color:var(--accent2);}
+.sc-btn.del{border-color:var(--accent4);color:var(--accent4);}
+.empty-state{text-align:center;padding:48px 20px;color:var(--muted);}
+.empty-state .es-icon{font-size:48px;margin-bottom:12px;}
+.empty-state p{font-size:14px;line-height:1.6;}
+
+/* ── Info screen ── */
+.info-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--card-r);margin-bottom:10px;overflow:hidden;}
+.info-card summary{padding:14px 16px;font-size:14px;font-weight:700;cursor:pointer;list-style:none;display:flex;justify-content:space-between;align-items:center;}
+.info-card summary::after{content:'›';font-size:18px;color:var(--muted);transition:transform .2s;}
+.info-card[open] summary::after{transform:rotate(90deg);}
+.info-card .info-body{padding:0 16px 16px;font-size:13px;color:var(--muted);line-height:1.7;}
+.info-card .info-body strong{color:var(--text);}
+.formula{background:var(--surface2);border-radius:8px;padding:10px 14px;font-family:monospace;font-size:13px;color:var(--accent);margin:8px 0;}
+
+/* ── Save modal ── */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:100;align-items:flex-end;}
+.modal-overlay.show{display:flex;}
+.modal{background:var(--surface);border-radius:20px 20px 0 0;padding:24px 20px 40px;width:100%;}
+.modal h3{font-size:18px;font-weight:800;margin-bottom:16px;}
+.modal input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:10px;color:var(--text);font-size:16px;padding:12px 14px;outline:none;margin-bottom:14px;}
+.modal-btns{display:flex;gap:10px;}
+.modal-btns button{flex:1;padding:13px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;border:none;}
+.modal-cancel{background:var(--surface2);color:var(--muted);}
+.modal-save{background:var(--accent);color:#000;}
+
+/* ── Tooltip / info ── */
+.tip-row{display:flex;align-items:center;gap:6px;margin-top:6px;}
+.tip-icon{width:16px;height:16px;border-radius:50%;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--muted);flex-shrink:0;}
+.tip-text{font-size:11px;color:var(--muted);line-height:1.4;}
+
+/* ── Bottom safe area ── */
+.bottom-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(10,15,30,.95);backdrop-filter:blur(12px);border-top:1px solid var(--border);padding:8px 20px 20px;z-index:50;}
+</style>
+</head>
+<body>
+<div class="app">
+
+<!-- ── HEADER ── -->
+<div class="header">
+  <div class="header-top">
+    <div class="logo">
+      <div class="logo-icon">🔥</div>
+      <div class="logo-text"><span>FIRE</span> Calculator</div>
+    </div>
+    <button id="saveBtn" style="background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.3);color:#f59e0b;border-radius:8px;padding:7px 14px;font-size:12px;font-weight:700;cursor:pointer;">Save</button>
+  </div>
+  <div class="tab-row">
+    <button class="tab active" data-tab="calc">Calculate</button>
+    <button class="tab" data-tab="results">Results</button>
+    <button class="tab" data-tab="scenarios">Scenarios</button>
+    <button class="tab" data-tab="learn">Learn</button>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN: CALCULATE
+══════════════════════════════ -->
+<div class="screen active" id="screen-calc">
+
+  <div class="section-title">FIRE Type</div>
+  <div class="fire-types">
+    <button class="fire-pill lean active" data-fire="lean">🌱 Lean</button>
+    <button class="fire-pill regular" data-fire="regular">🔥 Regular</button>
+    <button class="fire-pill fat" data-fire="fat">💰 Fat</button>
+    <button class="fire-pill coast" data-fire="coast">🌊 Coast</button>
+  </div>
+  <div class="tip-row" style="margin-bottom:16px">
+    <div class="tip-icon">i</div>
+    <div class="tip-text" id="fireTypeTip">Lean FIRE: frugal lifestyle, minimal spending (~$25k–40k/yr)</div>
+  </div>
+
+  <div class="section-title">Your Numbers</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="field">
+        <label>Current Portfolio Value</label>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input type="number" id="initialAmount" class="has-prefix" value="50000" inputmode="numeric">
+        </div>
+      </div>
+      <div class="field">
+        <label>Annual Contribution</label>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input type="number" id="annualContribution" class="has-prefix" value="24000" inputmode="numeric">
+        </div>
+      </div>
+      <div class="field">
+        <label>Current Age</label>
+        <input type="number" id="currentAge" value="35" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Growth & Withdrawal</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="field">
+        <label>Annual Return Rate — <span id="returnLabel" style="color:var(--accent2)">7%</span></label>
+        <input type="range" id="annualReturnRate" min="1" max="15" step="0.5" value="7">
+        <div class="range-labels"><span>1%</span><span>Conservative 5%</span><span>15%</span></div>
+      </div>
+      <div class="field">
+        <label>Inflation Rate — <span id="inflationLabel" style="color:var(--accent3)">3%</span></label>
+        <input type="range" id="inflationRate" min="0" max="8" step="0.5" value="3">
+        <div class="range-labels"><span>0%</span><span>Avg 3%</span><span>8%</span></div>
+      </div>
+      <div class="field">
+        <label>Safe Withdrawal Rate (SWR) — <span id="swrLabel" style="color:var(--accent)">4%</span></label>
+        <input type="range" id="swr" min="2" max="6" step="0.1" value="4">
+        <div class="range-labels"><span>2% (safe)</span><span>4% (rule)</span><span>6% (risky)</span></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Annual Expenses in Retirement</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="seg" id="withdrawSeg">
+        <button class="seg-btn active" data-wtype="expenses">Set Expenses</button>
+        <button class="seg-btn" data-wtype="percent">% of Portfolio</button>
+        <button class="seg-btn" data-wtype="amount">Fixed Amount</button>
+      </div>
+      <div id="wfield-expenses">
+        <div class="field">
+          <label>Annual Expenses</label>
+          <div class="input-wrap">
+            <span class="prefix">$</span>
+            <input type="number" id="annualExpenses" class="has-prefix" value="60000" inputmode="numeric">
+          </div>
+        </div>
+        <div class="tip-row">
+          <div class="tip-icon">i</div>
+          <div class="tip-text">Your FIRE Number = Expenses ÷ SWR. At $60k expenses and 4% SWR → $1.5M target.</div>
+        </div>
+      </div>
+      <div id="wfield-percent" style="display:none">
+        <div class="field">
+          <label>Withdrawal %</label>
+          <div class="input-wrap">
+            <input type="number" id="withdrawPercent" value="4" inputmode="numeric">
+            <span class="suffix">%</span>
+          </div>
+        </div>
+      </div>
+      <div id="wfield-amount" style="display:none">
+        <div class="field">
+          <label>Annual Withdrawal Amount</label>
+          <div class="input-wrap">
+            <span class="prefix">$</span>
+            <input type="number" id="withdrawAmount" class="has-prefix" value="60000" inputmode="numeric">
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section-title">Additional Income</div>
+  <div class="card">
+    <div class="card-body">
+      <div class="field">
+        <label>Social Security / Pension (annual)</label>
+        <div class="input-wrap">
+          <span class="prefix">$</span>
+          <input type="number" id="pension" class="has-prefix" value="0" inputmode="numeric">
+        </div>
+      </div>
+      <div class="field">
+        <label>Starts at age</label>
+        <input type="number" id="pensionAge" value="67" inputmode="numeric">
+      </div>
+    </div>
+  </div>
+
+  <button class="calc-btn" id="calcBtn">Calculate My FIRE Date 🔥</button>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN: RESULTS
+══════════════════════════════ -->
+<div class="screen" id="screen-results">
+  <div class="results" id="resultsBlock">
+
+    <!-- Hero -->
+    <div class="result-hero">
+      <div class="label">Your FIRE Number</div>
+      <div class="number" id="fireNumber">$0</div>
+      <div class="sub" id="fireSubtitle">Based on 4% Safe Withdrawal Rate</div>
+    </div>
+
+    <!-- KPIs -->
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="k-label">FIRE Age</div>
+        <div class="k-val amber" id="fireAge">—</div>
+        <div class="k-sub" id="fireYears">years to go</div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">Portfolio at FIRE</div>
+        <div class="k-val blue" id="firePortfolio">—</div>
+        <div class="k-sub">target met</div>
+      </div>
+    </div>
+    <div class="kpi-row">
+      <div class="kpi">
+        <div class="k-label">Monthly to Invest</div>
+        <div class="k-val green" id="monthlyNeeded">—</div>
+        <div class="k-sub">to hit your goal</div>
+      </div>
+      <div class="kpi">
+        <div class="k-label">Real Return</div>
+        <div class="k-val" id="realReturn">—</div>
+        <div class="k-sub">after inflation</div>
+      </div>
+    </div>
+
+    <!-- Progress -->
+    <div class="progress-wrap">
+      <div class="progress-label">
+        <span style="font-size:12px;font-weight:700">Progress to FIRE</span>
+        <span id="progressPct" style="font-size:12px;color:var(--accent);font-weight:800">0%</span>
+      </div>
+      <div class="progress-bar">
+        <div class="progress-fill" id="progressFill" style="width:0%;background:linear-gradient(90deg,#f59e0b,#3b82f6)"></div>
+      </div>
+      <div style="display:flex;justify-content:space-between;margin-top:6px;font-size:11px;color:var(--muted)">
+        <span id="progressLeft">$0 now</span>
+        <span id="progressRight">$0 target</span>
+      </div>
+    </div>
+
+    <!-- Chart -->
+    <div class="chart-wrap">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+        <span style="font-size:13px;font-weight:700">Portfolio Growth</span>
+        <span style="font-size:11px;color:var(--muted)" id="chartLegend"></span>
+      </div>
+      <div class="chart-tabs">
+        <button class="chart-tab active" data-chart="balance">Balance</button>
+        <button class="chart-tab" data-chart="contribution">Contributions</button>
+        <button class="chart-tab" data-chart="growth">Growth</button>
+        <button class="chart-tab" data-chart="withdrawal">Withdrawal</button>
+      </div>
+      <canvas id="chart" height="200" style="width:100%;display:block;"></canvas>
+    </div>
+
+    <!-- Milestones -->
+    <div class="section-title">Milestones</div>
+    <div class="milestones" id="milestones"></div>
+
+    <!-- Projection Table -->
+    <div class="section-title">Year-by-Year Projection</div>
+    <div class="table-wrap">
+      <div class="table-scroll">
+        <table>
+          <thead>
+            <tr>
+              <th>Year</th>
+              <th>Age</th>
+              <th>Balance</th>
+              <th>Growth</th>
+              <th>Contrib</th>
+              <th>Withdraw</th>
+            </tr>
+          </thead>
+          <tbody id="projTable"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  <div id="noResults" style="text-align:center;padding:60px 20px;color:var(--muted)">
+    <div style="font-size:48px;margin-bottom:16px">🔥</div>
+    <p style="font-size:15px;line-height:1.6">Enter your numbers on the<br><b>Calculate</b> tab and hit the button</p>
+  </div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN: SCENARIOS
+══════════════════════════════ -->
+<div class="screen" id="screen-scenarios">
+  <div class="section-title">Saved Scenarios</div>
+  <div id="scenarioList"></div>
+</div>
+
+<!-- ══════════════════════════════
+     SCREEN: LEARN
+══════════════════════════════ -->
+<div class="screen" id="screen-learn">
+  <div class="section-title">What is FIRE?</div>
+
+  <details class="info-card">
+    <summary>🔥 FIRE — Financial Independence, Retire Early</summary>
+    <div class="info-body">
+      <strong>FIRE</strong> is a movement built around aggressive saving and investing so you can live off your portfolio returns — retiring decades earlier than the traditional age 65.<br><br>
+      The core idea: if your portfolio is large enough that safe withdrawals cover your expenses forever, you're financially free.
+    </div>
+  </details>
+
+  <details class="info-card">
+    <summary>📐 The 4% Rule</summary>
+    <div class="info-body">
+      The <strong>4% Rule</strong> (from the Trinity Study, 1998) states that withdrawing 4% of your portfolio per year has historically lasted 30+ years in 95%+ of market scenarios.<br><br>
+      <div class="formula">FIRE Number = Annual Expenses ÷ 0.04</div>
+      Example: $60,000/yr expenses → <strong>$1,500,000 FIRE Number</strong><br><br>
+      Many lean FIRE adherents use 3.5% for extra safety. Fat FIRE often stays at 3%.
+    </div>
+  </details>
+
+  <details class="info-card">
+    <summary>🌱 Lean FIRE</summary>
+    <div class="info-body">
+      Living below the median household income in retirement — typically <strong>$25,000–$40,000/year</strong>.<br><br>
+      Requires minimal lifestyle, geographic arbitrage (lower cost-of-living areas), or side income. Smallest FIRE number, fastest to reach.
+      <div class="formula">Lean FIRE Number ≈ $750k – $1M</div>
+    </div>
+  </details>
+
+  <details class="info-card">
+    <summary>🔥 Regular FIRE</summary>
+    <div class="info-body">
+      Maintaining a comfortable middle-class lifestyle in retirement — typically <strong>$40,000–$100,000/year</strong>.<br><br>
+      The most common FIRE target. Assumes modest lifestyle without major sacrifices.
+      <div class="formula">Regular FIRE Number ≈ $1M – $2.5M</div>
+    </div>
+  </details>
+
+  <details class="info-card">
+    <summary>💰 Fat FIRE</summary>
+    <div class="info-body">
+      Retiring with <strong>$100,000+/year</strong> in spending — maintaining a luxurious lifestyle without financial compromise.<br><br>
+      Usually requires high-income careers, business exits, or real estate. Takes significantly longer but provides maximum security.
+      <div class="formula">Fat FIRE Number ≈ $2.5M – $5M+</div>
+    </div>
+  </details>
+
+  <details class="info-card">
+    <summary>🌊 Coast FIRE</summary>
+    <div class="info-body">
+      The point at which you can <strong>stop contributing</strong> to investments and let compound growth alone carry you to your FIRE number by retirement age.<br><br>
+      After reaching Coast FIRE, you only need to cover current living expenses — you can take lower-stress jobs or work part-time.
+      <div class="formula">Coast Number = FIRE Number ÷ (1+r)^years</div>
+    </div>
+  </details>
+
+  <details class="info-card">
+    <summary>📊 Safe Withdrawal Rate (SWR)</summary>
+    <div class="info-body">
+      The percentage of your portfolio you can withdraw annually without running out of money over a long retirement.<br><br>
+      <strong>3% —</strong> Very safe, works in almost all historical scenarios including 60-year retirements<br>
+      <strong>3.5% —</strong> Safe for 40–50 year retirements<br>
+      <strong>4% —</strong> The classic rule. Safe for 30-year retirements<br>
+      <strong>5%+  —</strong> Riskier, may deplete early in bad markets
+    </div>
+  </details>
+
+  <details class="info-card">
+    <summary>⚡ Real Return vs Nominal Return</summary>
+    <div class="info-body">
+      <strong>Nominal return:</strong> What you see on your brokerage statement (e.g., 7%)<br>
+      <strong>Real return:</strong> Nominal minus inflation (e.g., 7% − 3% = 4%)<br><br>
+      This calculator uses nominal returns in projections. Your actual purchasing power grows at the real rate. Always plan using real returns for expenses.
+    </div>
+  </details>
+</div>
+
+</div><!-- end .app -->
+
+<!-- ── Save Modal ── -->
+<div class="modal-overlay" id="modalOverlay">
+  <div class="modal">
+    <h3>Save Scenario</h3>
+    <input type="text" id="scenarioName" placeholder="e.g. Aggressive savings plan" maxlength="40">
+    <div class="modal-btns">
+      <button class="modal-cancel" id="modalCancel">Cancel</button>
+      <button class="modal-save" id="modalSave">Save</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ── State ──
+let state = {
+  fireType: 'lean',
+  withdrawType: 'expenses',
+  chartColumn: 'balance',
+  rows: [],
+  fireData: null,
+};
+
+const fireTypeTips = {
+  lean:    'Lean FIRE: frugal lifestyle, minimal spending (~$25k–40k/yr)',
+  regular: 'Regular FIRE: comfortable lifestyle (~$40k–100k/yr)',
+  fat:     'Fat FIRE: luxurious lifestyle, $100k+/yr in retirement',
+  coast:   'Coast FIRE: stop investing now, let compounding do the rest',
+};
+
+// ── Helpers ──
+const fmt = (n) => n >= 1e6 ? '$'+(n/1e6).toFixed(2)+'M' : n >= 1e3 ? '$'+(n/1e3).toFixed(0)+'k' : '$'+Math.round(n).toLocaleString();
+const fmtFull = (n) => '$'+Math.round(n).toLocaleString();
+const el = (id) => document.getElementById(id);
+const val = (id) => parseFloat(el(id).value) || 0;
+
+// ── Tabs ──
+document.querySelectorAll('.tab').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    this.classList.add('active');
+    el('screen-'+this.dataset.tab).classList.add('active');
+    if (this.dataset.tab === 'scenarios') renderScenarios();
+    if (this.dataset.tab === 'results' && state.rows.length) setTimeout(renderChart, 30);
+  });
+});
+
+// ── FIRE type pills ──
+document.querySelectorAll('.fire-pill').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.fire-pill').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    state.fireType = this.dataset.fire;
+    el('fireTypeTip').textContent = fireTypeTips[state.fireType];
+    // Auto-fill suggested expenses
+    const presets = {lean:35000, regular:70000, fat:150000, coast:60000};
+    if (state.withdrawType === 'expenses') el('annualExpenses').value = presets[state.fireType];
+  });
+});
+
+// ── Range labels ──
+el('annualReturnRate').addEventListener('input', function(){ el('returnLabel').textContent = this.value+'%'; });
+el('inflationRate').addEventListener('input', function(){ el('inflationLabel').textContent = this.value+'%'; });
+el('swr').addEventListener('input', function(){ el('swrLabel').textContent = parseFloat(this.value).toFixed(1)+'%'; });
+
+// ── Withdraw type seg ──
+document.querySelectorAll('#withdrawSeg .seg-btn').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('#withdrawSeg .seg-btn').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    state.withdrawType = this.dataset.wtype;
+    ['expenses','percent','amount'].forEach(t => el('wfield-'+t).style.display = t===state.withdrawType?'block':'none');
+  });
+});
+
+// ── Chart tabs ──
+document.querySelectorAll('.chart-tab').forEach(btn => {
+  btn.addEventListener('click', function() {
+    document.querySelectorAll('.chart-tab').forEach(b => b.classList.remove('active'));
+    this.classList.add('active');
+    state.chartColumn = this.dataset.chart;
+    renderChart();
+  });
+});
+
+// ── CORE CALCULATION ENGINE ──
+function calculate() {
+  const initial = val('initialAmount');
+  const annualContrib = val('annualContribution');
+  const currentAge = val('currentAge') || 30;
+  const returnRate = val('annualReturnRate') / 100;
+  const inflationRate = val('inflationRate') / 100;
+  const swr = val('swr') / 100;
+  const pension = val('pension');
+  const pensionAge = val('pensionAge');
+  const realReturn = returnRate - inflationRate;
+
+  // Determine annual withdrawal target
+  let annualWithdrawal = 0;
+  if (state.withdrawType === 'expenses') {
+    annualWithdrawal = val('annualExpenses');
+  } else if (state.withdrawType === 'percent') {
+    annualWithdrawal = null; // percent of portfolio
+  } else {
+    annualWithdrawal = val('withdrawAmount');
+  }
+
+  // FIRE Number
+  const fireNumber = annualWithdrawal ? (annualWithdrawal - pension) / swr : null;
+
+  // Coast FIRE number
+  const coastYears = Math.max(0, 65 - currentAge);
+  const coastNumber = fireNumber ? fireNumber / Math.pow(1 + returnRate, coastYears) : null;
+
+  // Project year by year
+  const rows = [];
+  let balance = initial;
+  let fireYear = null;
+  let coastYear = null;
+
+  for (let yr = 0; yr < 60 && balance > 0; yr++) {
+    const age = currentAge + yr;
+    const startBalance = balance;
+    let contribution = 0;
+    let withdrawal = 0;
+
+    const pensionIncome = (age >= pensionAge) ? pension : 0;
+    const hasFired = fireYear !== null;
+
+    // Growth
+    const growth = balance * returnRate;
+    balance += growth;
+
+    if (hasFired || (fireNumber && balance >= fireNumber)) {
+      // Withdrawal phase
+      if (state.withdrawType === 'percent') {
+        withdrawal = balance * (val('withdrawPercent') / 100);
+      } else {
+        withdrawal = Math.max(0, (annualWithdrawal || 0) - pensionIncome);
+      }
+      balance -= withdrawal;
+      if (fireYear === null) fireYear = yr;
+    } else {
+      // Accumulation phase
+      contribution = annualContrib;
+      balance += contribution;
+    }
+
+    // Coast FIRE check
+    if (coastNumber && coastYear === null && balance >= coastNumber) {
+      coastYear = yr;
+    }
+
+    const endBalance = balance;
+    rows.push({ year: yr, age, startBalance, contribution, withdrawal, growth, endBalance });
+    if (endBalance <= 0) break;
+  }
+
+  return { rows, fireNumber, fireYear, coastNumber, coastYear, realReturn, currentAge, swr, annualWithdrawal, initial };
+}
+
+// ── CALCULATE BUTTON ──
+el('calcBtn').addEventListener('click', function() {
+  const data = calculate();
+  state.rows = data.rows;
+  state.fireData = data;
+  renderResults(data);
+  // Switch to results tab
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelector('[data-tab="results"]').classList.add('active');
+  el('screen-results').classList.add('active');
+  setTimeout(renderChart, 50);
+});
+
+// ── RENDER RESULTS ──
+function renderResults(data) {
+  const { rows, fireNumber, fireYear, coastNumber, coastYear, realReturn, currentAge, swr, annualWithdrawal, initial } = data;
+  el('resultsBlock').classList.add('show');
+  el('noResults').style.display = 'none';
+
+  // Hero
+  el('fireNumber').textContent = fireNumber ? fmt(fireNumber) : 'N/A';
+  el('fireSubtitle').textContent = `Based on ${(swr*100).toFixed(1)}% SWR — ${annualWithdrawal?fmtFull(annualWithdrawal)+'/yr expenses':'custom withdrawal'}`;
+
+  // KPIs
+  const fireAge = fireYear !== null ? currentAge + fireYear : null;
+  el('fireAge').textContent = fireAge ? fireAge : '65+';
+  el('fireYears').textContent = fireAge ? (fireYear === 0 ? 'Already FIRE! 🎉' : fireYear + ' years away') : 'keep saving!';
+  const firePortfolio = fireYear !== null ? rows[fireYear]?.endBalance : rows[rows.length-1]?.endBalance;
+  el('firePortfolio').textContent = firePortfolio ? fmt(firePortfolio) : fmt(rows[rows.length-1]?.endBalance||0);
+  el('monthlyNeeded').textContent = fmt((annualWithdrawal||0)/12);
+  el('realReturn').textContent = (realReturn*100).toFixed(1)+'%';
+
+  // Progress
+  const pct = fireNumber ? Math.min(100, (initial / fireNumber) * 100) : 0;
+  el('progressPct').textContent = pct.toFixed(1)+'%';
+  el('progressFill').style.width = pct+'%';
+  el('progressLeft').textContent = fmt(initial)+' now';
+  el('progressRight').textContent = fireNumber ? fmt(fireNumber)+' target' : 'set expenses';
+
+  // Milestones
+  const ms = [];
+  if (fireNumber) {
+    ms.push({icon:'💰',bg:'#16301a',name:'$100k Invested',val:'First big milestone',year:rows.findIndex(r=>r.endBalance>=100000),target:100000});
+    ms.push({icon:'🏠',bg:'#1a1a30',name:'Half FIRE',val:fmt(fireNumber/2),year:rows.findIndex(r=>r.endBalance>=fireNumber/2),target:fireNumber/2});
+    if (coastNumber) ms.push({icon:'🌊',bg:'#0d2030',name:'Coast FIRE',val:fmt(coastNumber),year:coastYear,target:coastNumber});
+    ms.push({icon:'🔥',bg:'#301a0d',name:'Full FIRE',val:fmt(fireNumber),year:fireYear,target:fireNumber});
+  }
+  el('milestones').innerHTML = ms.map(m => {
+    const achieved = m.year !== null && m.year !== -1 && m.year >= 0;
+    return `<div class="milestone">
+      <div class="ms-icon" style="background:${m.bg}">${m.icon}</div>
+      <div class="ms-info">
+        <div class="ms-name">${m.name}</div>
+        <div class="ms-val">${achieved ? 'Year '+(m.year)+' (Age '+(currentAge+m.year)+')' : m.val}</div>
+      </div>
+      <div class="ms-badge ${achieved?'done':'pending'}">${achieved?'✓ Done':'Pending'}</div>
+    </div>`;
+  }).join('');
+
+  // Table
+  el('projTable').innerHTML = rows.map((r,i) => {
+    const isFire = r.year === fireYear;
+    const isWithdrawal = r.withdrawal > 0;
+    const isDepleted = r.endBalance <= 0;
+    const cls = isFire ? 'fire-row' : isWithdrawal && !isFire ? 'withdrawal-row' : isDepleted ? 'depleted-row' : '';
+    return `<tr class="${cls}">
+      <td>Y${r.year}${isFire?' 🔥':''}</td>
+      <td>${r.age}</td>
+      <td>${fmt(r.endBalance)}</td>
+      <td style="color:var(--accent)">${fmt(r.growth)}</td>
+      <td style="color:var(--accent2)">${r.contribution?fmt(r.contribution):'—'}</td>
+      <td style="color:var(--accent3)">${r.withdrawal?fmt(r.withdrawal):'—'}</td>
+    </tr>`;
+  }).join('');
+
+  renderChart();
+}
+
+// ── CHART ──
+function renderChart() {
+  if (!state.rows.length) return;
+  const canvas = el('chart');
+  const dpr = Math.min(window.devicePixelRatio || 1, 2);
+
+  // Get true available width — walk up to find a sized container
+  let W = 0;
+  let node = canvas.parentElement;
+  while (node && W < 50) { W = node.clientWidth; node = node.parentElement; }
+  W = Math.max(200, Math.floor(W) - 32); // subtract card padding (16px each side)
+  const H = 220;
+
+  canvas.width  = W * dpr;
+  canvas.height = H * dpr;
+  canvas.style.width  = W + 'px';
+  canvas.style.height = H + 'px';
+
+  const ctx = canvas.getContext('2d');
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.scale(dpr, dpr);
+  ctx.clearRect(0, 0, W, H);
+
+  const colKey   = state.chartColumn;
+  const colMap   = {balance:'endBalance', contribution:'contribution', growth:'growth', withdrawal:'withdrawal'};
+  const dataKey  = colMap[colKey];
+  const colColors= {balance:'#f59e0b', contribution:'#3b82f6', growth:'#a78bfa', withdrawal:'#22c55e'};
+  const color    = colColors[colKey];
+
+  const rows   = state.rows;
+  const values = rows.map(r => Math.max(0, r[dataKey]));
+  const maxVal = Math.max(...values, 1);
+  const fireYear = (state.fireData && state.fireData.fireYear !== null) ? state.fireData.fireYear : null;
+
+  // Measure Y-label width so left padding is exact
+  ctx.font = '10px -apple-system,sans-serif';
+  const topLabel = fmt(maxVal);
+  const labelW = ctx.measureText(topLabel).width + 6;
+
+  const pad = { top:20, right:6, bottom:24, left: Math.ceil(labelW) + 4 };
+  const cW  = W - pad.left - pad.right;
+  const cH  = H - pad.top  - pad.bottom;
+
+  const xOf = (i) => pad.left + (rows.length > 1 ? (i / (rows.length-1)) * cW : 0);
+  const yOf = (v) => pad.top  + cH - Math.min(1, Math.max(0, v / maxVal)) * cH;
+
+  // ── Background ──
+  ctx.fillStyle = '#111827';
+  ctx.fillRect(0, 0, W, H);
+
+  // ── Grid lines ──
+  ctx.strokeStyle = 'rgba(255,255,255,.06)';
+  ctx.lineWidth = 1;
+  for (let i = 0; i <= 4; i++) {
+    const y = pad.top + (i/4) * cH;
+    ctx.beginPath(); ctx.moveTo(pad.left, y); ctx.lineTo(W - pad.right, y); ctx.stroke();
+  }
+
+  // ── Y-axis labels (right-aligned, left of chart area) ──
+  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  ctx.font = '10px -apple-system,sans-serif';
+  ctx.textAlign = 'right';
+  ctx.textBaseline = 'middle';
+  for (let i = 0; i <= 4; i++) {
+    const v = maxVal * (1 - i/4);
+    const y = pad.top + (i/4) * cH;
+    ctx.fillText(fmt(v), pad.left - 4, y);
+  }
+
+  // ── FIRE vertical line ──
+  if (fireYear !== null && fireYear >= 0 && fireYear < rows.length) {
+    const fx = xOf(fireYear);
+    ctx.save();
+    ctx.strokeStyle = 'rgba(245,158,11,.5)';
+    ctx.setLineDash([4, 3]);
+    ctx.lineWidth = 1.5;
+    ctx.beginPath(); ctx.moveTo(fx, pad.top); ctx.lineTo(fx, pad.top + cH); ctx.stroke();
+    ctx.setLineDash([]);
+    // Label above the line, inside chart top area
+    ctx.fillStyle = '#f59e0b';
+    ctx.font = 'bold 9px -apple-system,sans-serif';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'top';
+    ctx.fillText('FIRE', fx, pad.top + 2);
+    ctx.restore();
+  }
+
+  // ── Area fill ──
+  ctx.beginPath();
+  rows.forEach((r, i) => {
+    const x = xOf(i), y = yOf(Math.max(0, r[dataKey]));
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.lineTo(xOf(rows.length-1), pad.top + cH);
+  ctx.lineTo(xOf(0), pad.top + cH);
+  ctx.closePath();
+  const grad = ctx.createLinearGradient(0, pad.top, 0, pad.top + cH);
+  grad.addColorStop(0, color + '55');
+  grad.addColorStop(1, color + '05');
+  ctx.fillStyle = grad;
+  ctx.fill();
+
+  // ── Line ──
+  ctx.beginPath();
+  rows.forEach((r, i) => {
+    const x = xOf(i), y = yOf(Math.max(0, r[dataKey]));
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+  });
+  ctx.strokeStyle = color;
+  ctx.lineWidth = 2.5;
+  ctx.lineJoin = 'round';
+  ctx.lineCap  = 'round';
+  ctx.stroke();
+
+  // ── X-axis labels ──
+  ctx.fillStyle = 'rgba(255,255,255,.35)';
+  ctx.font = '9px -apple-system,sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'top';
+  const interval = rows.length > 40 ? 10 : rows.length > 20 ? 5 : 1;
+  rows.forEach((r, i) => {
+    if (r.year % interval === 0) {
+      const x = xOf(i);
+      // Only draw if label won't clip edges
+      if (x >= pad.left + 2 && x <= W - pad.right - 2) {
+        ctx.fillText('Y' + r.year, x, pad.top + cH + 6);
+      }
+    }
+  });
+}
+
+window.addEventListener('resize', () => { if (state.rows.length) renderChart(); });
+
+// ── SAVE / LOAD SCENARIOS ──
+el('saveBtn').addEventListener('click', () => {
+  if (!state.fireData) { alert('Calculate first!'); return; }
+  el('scenarioName').value = '';
+  el('modalOverlay').classList.add('show');
+  setTimeout(() => el('scenarioName').focus(), 100);
+});
+el('modalCancel').addEventListener('click', () => el('modalOverlay').classList.remove('show'));
+el('modalSave').addEventListener('click', () => {
+  const name = el('scenarioName').value.trim() || 'My Scenario';
+  saveScenario(name);
+  el('modalOverlay').classList.remove('show');
+});
+el('scenarioName').addEventListener('keydown', e => { if(e.key==='Enter') el('modalSave').click(); });
+
+function saveScenario(name) {
+  const scenarios = getScenarios();
+  const scenario = {
+    id: Date.now(),
+    name,
+    date: new Date().toLocaleDateString(),
+    inputs: {
+      initialAmount: val('initialAmount'),
+      annualContribution: val('annualContribution'),
+      currentAge: val('currentAge'),
+      annualReturnRate: val('annualReturnRate'),
+      inflationRate: val('inflationRate'),
+      swr: val('swr'),
+      annualExpenses: val('annualExpenses'),
+      withdrawPercent: val('withdrawPercent'),
+      withdrawAmount: val('withdrawAmount'),
+      pension: val('pension'),
+      pensionAge: val('pensionAge'),
+      fireType: state.fireType,
+      withdrawType: state.withdrawType,
+    },
+    result: {
+      fireNumber: state.fireData?.fireNumber,
+      fireYear: state.fireData?.fireYear,
+      currentAge: state.fireData?.currentAge,
+    }
+  };
+  scenarios.unshift(scenario);
+  localStorage.setItem('fire-scenarios', JSON.stringify(scenarios.slice(0,10)));
+}
+
+function getScenarios() {
+  try { return JSON.parse(localStorage.getItem('fire-scenarios') || '[]'); } catch { return []; }
+}
+
+function loadScenario(s) {
+  const inp = s.inputs;
+  el('initialAmount').value = inp.initialAmount;
+  el('annualContribution').value = inp.annualContribution;
+  el('currentAge').value = inp.currentAge;
+  el('annualReturnRate').value = inp.annualReturnRate;
+  el('inflationRate').value = inp.inflationRate;
+  el('swr').value = inp.swr;
+  el('annualExpenses').value = inp.annualExpenses;
+  el('withdrawPercent').value = inp.withdrawPercent;
+  el('withdrawAmount').value = inp.withdrawAmount;
+  el('pension').value = inp.pension;
+  el('pensionAge').value = inp.pensionAge;
+  el('returnLabel').textContent = inp.annualReturnRate+'%';
+  el('inflationLabel').textContent = inp.inflationRate+'%';
+  el('swrLabel').textContent = parseFloat(inp.swr).toFixed(1)+'%';
+  // Fire type
+  document.querySelectorAll('.fire-pill').forEach(b => {
+    b.classList.toggle('active', b.dataset.fire === inp.fireType);
+  });
+  state.fireType = inp.fireType || 'regular';
+  // Withdraw type
+  state.withdrawType = inp.withdrawType || 'expenses';
+  document.querySelectorAll('#withdrawSeg .seg-btn').forEach(b => {
+    b.classList.toggle('active', b.dataset.wtype === state.withdrawType);
+  });
+  ['expenses','percent','amount'].forEach(t => el('wfield-'+t).style.display = t===state.withdrawType?'block':'none');
+  // Switch to calc tab
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelector('[data-tab="calc"]').classList.add('active');
+  el('screen-calc').classList.add('active');
+}
+
+function renderScenarios() {
+  const scenarios = getScenarios();
+  const list = el('scenarioList');
+  if (!scenarios.length) {
+    list.innerHTML = `<div class="empty-state"><div class="es-icon">📊</div><p>No saved scenarios yet.<br>Calculate and tap <b>Save</b> to store a scenario.</p></div>`;
+    return;
+  }
+  list.innerHTML = scenarios.map((s,i) => {
+    const fireAge = s.result.fireYear !== null ? (s.result.currentAge + s.result.fireYear) : null;
+    return `<div class="scenario-card">
+      <div class="sc-header">
+        <div class="sc-name">${s.name}</div>
+        <div class="sc-date">${s.date}</div>
+      </div>
+      <div class="sc-stats">
+        <div class="sc-stat"><div class="s-label">FIRE Age</div><div class="s-val">${fireAge||'65+'}</div></div>
+        <div class="sc-stat"><div class="s-label">FIRE Number</div><div class="s-val">${s.result.fireNumber?fmt(s.result.fireNumber):'—'}</div></div>
+        <div class="sc-stat"><div class="s-label">Current</div><div class="s-val">${fmt(s.inputs.initialAmount)}</div></div>
+      </div>
+      <div class="sc-actions">
+        <button class="sc-btn load" onclick="loadScenario(getScenarios()[${i}])">Load</button>
+        <button class="sc-btn del" onclick="deleteScenario(${s.id})">Delete</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function deleteScenario(id) {
+  const s = getScenarios().filter(s => s.id !== id);
+  localStorage.setItem('fire-scenarios', JSON.stringify(s));
+  renderScenarios();
+}
+</script>
+</body>
+</html>
