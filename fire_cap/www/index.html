@@ -578,6 +578,11 @@ let state = {
   fireData: null,
 };
 
+const adState = {
+  initialized: false,
+  failed: false,
+};
+
 const fireTypeTips = {
   lean:    'Lean FIRE: frugal lifestyle, minimal spending (~$25k–40k/yr)',
   regular: 'Regular FIRE: comfortable lifestyle (~$40k–100k/yr)',
@@ -590,6 +595,72 @@ const fmt = (n) => n >= 1e6 ? '$'+(n/1e6).toFixed(2)+'M' : n >= 1e3 ? '$'+(n/1e3
 const fmtFull = (n) => '$'+Math.round(n).toLocaleString();
 const el = (id) => document.getElementById(id);
 const val = (id) => parseFloat(el(id).value) || 0;
+
+const ADMOB_CONFIG = {
+  // Set true for App Store/TestFlight release build.
+  releaseMode: true,
+  // Replace with your real AdMob banner unit ID before release.
+  productionBannerAdId: 'ca-app-pub-5664448531890756/2565417721',
+  // Google test banner unit ID for development.
+  testBannerAdId: 'ca-app-pub-3940256099942544/6300978111',
+};
+
+function getAdMobPlugin() {
+  const cap = window.Capacitor;
+  if (!cap || !cap.isNativePlatform || !cap.isNativePlatform()) return null;
+  if (!cap.Plugins || !cap.Plugins.AdMob) return null;
+  return cap.Plugins.AdMob;
+}
+
+async function initializeAdMob() {
+  const AdMob = getAdMobPlugin();
+  if (!AdMob || adState.initialized || adState.failed) return;
+
+  const usingProductionAds =
+    ADMOB_CONFIG.releaseMode &&
+    ADMOB_CONFIG.productionBannerAdId.startsWith('ca-app-pub-');
+
+  try {
+    await AdMob.initialize({ initializeForTesting: !usingProductionAds });
+
+    // Consent APIs are best-effort and can vary by region/settings.
+    try {
+      const consent = await AdMob.requestConsentInfo({});
+      if (consent && consent.isConsentFormAvailable) {
+        await AdMob.showConsentForm();
+      }
+    } catch (consentErr) {
+      console.warn('AdMob consent step skipped:', consentErr);
+    }
+
+    await AdMob.showBanner({
+      adId: usingProductionAds ? ADMOB_CONFIG.productionBannerAdId : ADMOB_CONFIG.testBannerAdId,
+      adSize: 'ADAPTIVE_BANNER',
+      position: 'BOTTOM_CENTER',
+      margin: 0,
+      isTesting: !usingProductionAds,
+      npa: true
+    });
+
+    if (ADMOB_CONFIG.releaseMode && !usingProductionAds) {
+      console.warn('AdMob releaseMode is enabled, but productionBannerAdId is not set. Falling back to test ads.');
+    }
+
+    adState.initialized = true;
+    console.log('AdMob initialized and banner displayed');
+  } catch (err) {
+    adState.failed = true;
+    console.warn('AdMob initialize failed:', err);
+  }
+}
+
+window.addEventListener('load', () => {
+  initializeAdMob();
+});
+
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) initializeAdMob();
+});
 
 // ── Tabs ──
 document.querySelectorAll('.tab').forEach(btn => {

@@ -1,6 +1,5 @@
 import UIKit
 import Capacitor
-import AppTrackingTransparency
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -13,13 +12,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func applicationDidBecomeActive(_ application: UIApplication) {
-        // Request App Tracking Transparency authorization for AdMob personalized ads.
-        // The system prompt is only shown once; guard against redundant calls.
-        if #available(iOS 14, *) {
-            if ATTrackingManager.trackingAuthorizationStatus == .notDetermined {
-                ATTrackingManager.requestTrackingAuthorization { _ in }
-            }
-        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

@@ -13,8 +13,9 @@ install! 'cocoapods',
 
 prepare_react_native_project!
 
-target 'FireCalculator' do
+target 'FireCalcultor' do
   use_expo_modules!
+  pod 'Google-Mobile-Ads-SDK'
 
   if ENV['EXPO_USE_COMMUNITY_AUTOLINKING'] == '1'
     config_command = ['node', '-e', "process.argv=['', '', 'config'];require('@react-native-community/cli').run()"];

@@ -1,10 +1,12 @@
 import Expo 
+import GoogleMobileAds
 import React
 import ReactAppDependencyProvider
 
 @UIApplicationMain
 public class AppDelegate: ExpoAppDelegate {
   var window: UIWindow?
+  private var bannerView: BannerView?
 
   var reactNativeDelegate: ExpoReactNativeFactoryDelegate?
   var reactNativeFactory: RCTReactNativeFactory?
@@ -20,6 +22,7 @@ public class AppDelegate: ExpoAppDelegate {
     reactNativeDelegate = delegate
     reactNativeFactory = factory
     bindReactNativeFactory(factory)
+    MobileAds.shared.start(completionHandler: nil)
 
 #if os(iOS) || os(tvOS)
     window = UIWindow(frame: UIScreen.main.bounds)
@@ -27,6 +30,7 @@ public class AppDelegate: ExpoAppDelegate {
       withModuleName: "main",
       in: window,
       launchOptions: launchOptions)
+    loadBannerAd()
 #endif
 
     return super.application(application, didFinishLaunchingWithOptions: launchOptions)
@@ -50,6 +54,31 @@ public class AppDelegate: ExpoAppDelegate {
     let result = RCTLinkingManager.application(application, continue: userActivity, restorationHandler: restorationHandler)
     return super.application(application, continue: userActivity, restorationHandler: restorationHandler) || result
   }
+
+#if os(iOS)
+  private func loadBannerAd() {
+    guard let window,
+          let rootViewController = window.rootViewController else {
+      return
+    }
+
+    let adWidth = window.bounds.inset(by: window.safeAreaInsets).width
+    let adSize = currentOrientationAnchoredAdaptiveBanner(width: adWidth)
+    let bannerView = BannerView(adSize: adSize)
+    bannerView.adUnitID = "ca-app-pub-5664448531890756/6053658055"
+    bannerView.rootViewController = rootViewController
+    bannerView.translatesAutoresizingMaskIntoConstraints = false
+
+    window.addSubview(bannerView)
+    NSLayoutConstraint.activate([
+      bannerView.centerXAnchor.constraint(equalTo: window.centerXAnchor),
+      bannerView.bottomAnchor.constraint(equalTo: window.safeAreaLayoutGuide.bottomAnchor),
+    ])
+
+    bannerView.load(Request())
+    self.bannerView = bannerView
+  }
+#endif
 }
 
 class ReactNativeDelegate: ExpoReactNativeFactoryDelegate {
