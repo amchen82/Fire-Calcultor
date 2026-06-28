@@ -597,12 +597,8 @@ const el = (id) => document.getElementById(id);
 const val = (id) => parseFloat(el(id).value) || 0;
 
 const ADMOB_CONFIG = {
-  // Set true for App Store/TestFlight release build.
-  releaseMode: true,
-  // Replace with your real AdMob banner unit ID before release.
-  productionBannerAdId: 'ca-app-pub-5664448531890756/2565417721',
-  // Google test banner unit ID for development.
-  testBannerAdId: 'ca-app-pub-3940256099942544/6300978111',
+  // Production banner unit ID.
+  productionBannerAdId: 'ca-app-pub-5664448531890756/1760023978',
 };
 
 function getAdMobPlugin() {
@@ -616,12 +612,9 @@ async function initializeAdMob() {
   const AdMob = getAdMobPlugin();
   if (!AdMob || adState.initialized || adState.failed) return;
 
-  const usingProductionAds =
-    ADMOB_CONFIG.releaseMode &&
-    ADMOB_CONFIG.productionBannerAdId.startsWith('ca-app-pub-');
-
   try {
-    await AdMob.initialize({ initializeForTesting: !usingProductionAds });
+    // Force production ad serving for release builds.
+    await AdMob.initialize({ initializeForTesting: false });
 
     // Consent APIs are best-effort and can vary by region/settings.
     try {
@@ -634,17 +627,13 @@ async function initializeAdMob() {
     }
 
     await AdMob.showBanner({
-      adId: usingProductionAds ? ADMOB_CONFIG.productionBannerAdId : ADMOB_CONFIG.testBannerAdId,
+      adId: ADMOB_CONFIG.productionBannerAdId,
       adSize: 'ADAPTIVE_BANNER',
       position: 'BOTTOM_CENTER',
       margin: 0,
-      isTesting: !usingProductionAds,
+      isTesting: false,
       npa: true
     });
-
-    if (ADMOB_CONFIG.releaseMode && !usingProductionAds) {
-      console.warn('AdMob releaseMode is enabled, but productionBannerAdId is not set. Falling back to test ads.');
-    }
 
     adState.initialized = true;
     console.log('AdMob initialized and banner displayed');
